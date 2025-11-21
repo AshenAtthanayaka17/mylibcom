@@ -1,3 +1,5 @@
+// Update v1.2.0
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,9 +10,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;700&display=swap');
         
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', 'Noto Sans Sinhala', sans-serif;
             background-color: #0f172a; /* Slate 900 */
         }
 
@@ -41,13 +44,22 @@
             overflow: hidden;
         }
         
-        /* Age/Category Badges Colors */
+        /* Category Badges Colors */
         .cat-Children { background-color: #22c55e; color: white; }      /* Green */
         .cat-Teens { background-color: #eab308; color: black; }         /* Yellow */
-        .cat-YA { background-color: #f97316; color: white; }            /* Orange (Young Adult) */
+        .cat-YA { background-color: #f97316; color: white; }            /* Orange */
         .cat-Adult { background-color: #ef4444; color: white; }         /* Red */
         .cat-Academic { background-color: #3b82f6; color: white; }      /* Blue */
-        .cat-Not-Rated { background-color: #ffffff; color: white; }     /* White */
+
+        /* Availability Status Styles */
+        .status-available { color: #34d399; } /* Emerald 400 */
+        .status-checked-out { color: #f87171; } /* Red 400 */
+        
+        /* Dim card if checked out */
+        .card-unavailable img {
+            filter: grayscale(100%);
+            opacity: 0.6;
+        }
 
         .fade-in {
             animation: fadeIn 0.5s ease-in-out;
@@ -66,7 +78,6 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-3 cursor-pointer" onclick="resetApp()">
-                    <!-- Changed icon to Book -->
                     <i class="fa-solid fa-book-open text-3xl text-emerald-500"></i>
                     <span class="text-xl font-bold tracking-wide text-white">Libri<span class="text-emerald-500">Vault</span></span>
                 </div>
@@ -103,17 +114,16 @@
         <!-- Filters & Stats -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             
-            <!-- Filter Tags (Book Genres) -->
+            <!-- Filter Tags -->
             <div class="flex flex-wrap gap-2" id="genreFilters">
                 <button onclick="filterByGenre('All')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 transition-all hover:bg-emerald-500 active-filter">All</button>
+                <button onclick="filterByGenre('Poetry')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Poetry</button>
                 <button onclick="filterByGenre('Fiction')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Fiction</button>
                 <button onclick="filterByGenre('Fantasy')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Fantasy</button>
                 <button onclick="filterByGenre('Sci-Fi')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Sci-Fi</button>
                 <button onclick="filterByGenre('Mystery')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Mystery</button>
                 <button onclick="filterByGenre('Classic')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Classic</button>
                 <button onclick="filterByGenre('Non-Fiction')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Non-Fiction</button>
-                <button onclick="filterByGenre('Poetry')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Poetry</button>
-                <button onclick="filterByGenre('Novel')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Novel</button>
             </div>
 
             <!-- Sort/Count -->
@@ -125,6 +135,7 @@
                         <option value="newest">Newest</option>
                         <option value="oldest">Oldest</option>
                         <option value="rating">Top Rated</option>
+                        <option value="available">Available First</option>
                     </select>
                 </div>
             </div>
@@ -167,7 +178,7 @@
                 </button>
 
                 <div class="flex flex-col md:flex-row">
-                    <!-- Modal Image (Book Cover style) -->
+                    <!-- Modal Image -->
                     <div class="md:w-2/5 h-64 md:h-auto relative bg-slate-900">
                          <div id="modalImagePlaceholder" class="w-full h-full flex items-center justify-center text-slate-700 bg-slate-900">
                             <i class="fa-solid fa-book text-4xl"></i>
@@ -211,13 +222,16 @@
                                 </div>
                                 <div>
                                     <h4 class="text-xs font-semibold text-slate-500 uppercase">Status</h4>
-                                    <p class="text-emerald-400 text-sm font-bold"><i class="fa-solid fa-check-circle mr-1"></i> Error404</p>
+                                    <div id="modalStatus" class="flex items-center text-sm font-bold">
+                                        <!-- Injected via JS -->
+                                    </div>
                                 </div>
                             </div>
 
+                            <!-- Action Button -->
                             <div class="pt-4">
-                                <button class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-bookmark"></i> Reserve Book
+                                <button id="actionButton" class="w-full text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                                    <!-- Injected via JS -->
                                 </button>
                             </div>
                         </div>
@@ -228,10 +242,13 @@
     </div>
 
     <script>
-        // --- Mock Data for Books ---
+        // --- BOOK DATABASE ---
+        // TO UPDATE AVAILABILITY: 
+        // Find the book in this list and change 'available: true' to 'available: false' (or vice versa).
+        
         const books = [
-            {
-                id: 1,
+             {
+                id: 101,
                 title: "පයිතගරස් සියදිවි නසා ගනී",
                 author: "Ruuso",
                 genre: "Poetry",
@@ -241,33 +258,166 @@
                 pages: 80,
                 location: "Shelf B-19",
                 description: "Not available at the moment",
-                image: "https://booklovers.lk/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-30-at-00.28.23-2.jpeg" 
+                image: "https://booklovers.lk/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-30-at-00.28.23-2.jpeg",
+                
+                // CHANGE THIS LINE TO UPDATE STATUS:
+                available: false 
+            },
+            {
+                id: 1,
+                title: "The Great Gatsby",
+                author: "F. Scott Fitzgerald",
+                genre: "Classic",
+                year: 1925,
+                rating: 4.2,
+                category: "Adult",
+                pages: 180,
+                location: "Shelf C-04",
+                description: "A 1925 novel that follows a cast of characters living in the fictional towns of West Egg and East Egg on prosperous Long Island in the summer of 1922.",
+                image: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=600",
+                
+                // CHANGE THIS LINE TO UPDATE STATUS:
+                available: true
             },
             {
                 id: 2,
-                title: "පයිතගරස් සියදිවි නසා ගනී",
-                author: "Ruuso",
-                genre: "Poetry",
-                year: 0000,
-                rating: 8.2,
-                category: "Teens",
-                pages: 80,
-                location: "Shelf B-19",
-                description: "Not available at the moment",
-                image: "https://booklovers.lk/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-30-at-00.28.23-2.jpeg" 
+                title: "Dune",
+                author: "Frank Herbert",
+                genre: "Sci-Fi",
+                year: 1965,
+                rating: 4.7,
+                category: "Adult",
+                pages: 412,
+                location: "Shelf S-12",
+                description: "Set on the desert planet Arrakis, Dune is the story of the boy Paul Atreides, heir to a noble family tasked with ruling an inhospitable world where the only thing of value is the 'spice' melange.",
+                image: "https://images.unsplash.com/photo-1541963463532-d68292c34b19?auto=format&fit=crop&q=80&w=600",
+                available: true
             },
             {
-                id: 1,
-                title: "පයිතගරස් සියදිවි නසා ගනී",
-                author: "Ruuso",
-                genre: "Poetry",
-                year: 0000,
-                rating: 8.2,
+                id: 3,
+                title: "Harry Potter and the Sorcerer's Stone",
+                author: "J.K. Rowling",
+                genre: "Fantasy",
+                year: 1997,
+                rating: 4.9,
+                category: "Children",
+                pages: 309,
+                location: "Shelf Y-01",
+                description: "An orphaned boy enrolls in a school of wizardry, where he learns the truth about himself, his family and the terrible evil that haunts the magical world.",
+                image: "https://images.unsplash.com/photo-1618666012174-83b441c0bc76?auto=format&fit=crop&q=80&w=600",
+                available: false
+            },
+            {
+                id: 4,
+                title: "The Hobbit",
+                author: "J.R.R. Tolkien",
+                genre: "Fantasy",
+                year: 1937,
+                rating: 4.8,
                 category: "Teens",
-                pages: 80,
-                location: "Shelf B-19",
-                description: "Not available at the moment",
-                image: "https://booklovers.lk/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-30-at-00.28.23-2.jpeg" 
+                pages: 310,
+                location: "Shelf F-22",
+                description: "A reluctant Hobbit, Bilbo Baggins, sets out to the Lonely Mountain with a spirited group of dwarves to reclaim their mountain home, and the gold within it from the dragon Smaug.",
+                image: "https://images.unsplash.com/photo-1629196911514-cfd8d63f37f5?auto=format&fit=crop&q=80&w=600",
+                available: true
+            },
+            {
+                id: 5,
+                title: "1984",
+                author: "George Orwell",
+                genre: "Sci-Fi",
+                year: 1949,
+                rating: 4.6,
+                category: "Adult",
+                pages: 328,
+                location: "Shelf C-09",
+                description: "Among the seminal texts of the 20th century, Nineteen Eighty-Four is a rare work that grows more haunting as its futuristic purgatory becomes more real.",
+                image: "https://images.unsplash.com/photo-1535905557558-afc4877a26fc?auto=format&fit=crop&q=80&w=600",
+                available: true
+            },
+            {
+                id: 6,
+                title: "The Da Vinci Code",
+                author: "Dan Brown",
+                genre: "Mystery",
+                year: 2003,
+                rating: 3.9,
+                category: "Adult",
+                pages: 489,
+                location: "Shelf M-15",
+                description: "A murder in the Louvre and clues in Da Vinci paintings lead to the discovery of a religious mystery protected by a secret society for two thousand years.",
+                image: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=600",
+                available: false
+            },
+            {
+                id: 7,
+                title: "Sapiens: A Brief History of Humankind",
+                author: "Yuval Noah Harari",
+                genre: "Non-Fiction",
+                year: 2011,
+                rating: 4.5,
+                category: "Adult",
+                pages: 443,
+                location: "Shelf N-02",
+                description: "100,000 years ago, at least six human species inhabited the earth. Today there is just one. Us. Homo sapiens. How did our species succeed in the battle for dominance?",
+                image: "https://images.unsplash.com/photo-1550399105-c4db5fb85c18?auto=format&fit=crop&q=80&w=600",
+                available: true
+            },
+            {
+                id: 8,
+                title: "Charlotte's Web",
+                author: "E.B. White",
+                genre: "Fiction",
+                year: 1952,
+                rating: 4.8,
+                category: "Children",
+                pages: 192,
+                location: "Shelf K-05",
+                description: "Wilbur the pig is desolate when he discovers that he is destined to be the farmer's dinner until his spider friend, Charlotte, decides to help him.",
+                image: "https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&q=80&w=600",
+                available: true
+            },
+             {
+                id: 9,
+                title: "The Hunger Games",
+                author: "Suzanne Collins",
+                genre: "Sci-Fi",
+                year: 2008,
+                rating: 4.3,
+                category: "YA",
+                pages: 374,
+                location: "Shelf T-18",
+                description: "In the ruins of a place once known as North America lies the nation of Panem, a shining Capitol surrounded by twelve outlying districts. The Capitol is harsh and cruel and keeps the districts in line by forcing them all to send one boy and one girl between the ages of twelve and eighteen to participate in the annual Hunger Games.",
+                image: "https://images.unsplash.com/photo-1535572290543-960a8046f5af?auto=format&fit=crop&q=80&w=600",
+                available: true
+            },
+            {
+                id: 10,
+                title: "Sherlock Holmes: The Complete Novels",
+                author: "Arthur Conan Doyle",
+                genre: "Mystery",
+                year: 1887,
+                rating: 4.9,
+                category: "Adult",
+                pages: 1059,
+                location: "Shelf M-01",
+                description: "Sherlock Holmes is a fictional detective created by British author Arthur Conan Doyle. Referring to himself as a 'consulting detective' in the stories, Holmes is known for his proficiency with observation.",
+                image: "https://images.unsplash.com/photo-1476275466078-4007374efbbe?auto=format&fit=crop&q=80&w=600",
+                available: false
+            },
+            {
+                id: 11,
+                title: "Pride and Prejudice",
+                author: "Jane Austen",
+                genre: "Classic",
+                year: 1813,
+                rating: 4.6,
+                category: "Adult",
+                pages: 279,
+                location: "Shelf C-02",
+                description: "Since its immediate success in 1813, Pride and Prejudice has remained one of the most popular novels in the English language. Jane Austen called this brilliant work 'her own darling child'.",
+                image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=600",
+                available: true
             }
         ];
 
@@ -350,6 +500,7 @@
                 if (currentSort === 'newest') return b.year - a.year;
                 if (currentSort === 'oldest') return a.year - b.year;
                 if (currentSort === 'rating') return b.rating - a.rating;
+                if (currentSort === 'available') return (a.available === b.available) ? 0 : a.available ? -1 : 1;
                 return 0;
             });
         }
@@ -369,11 +520,18 @@
                 
                 displayBooks.forEach(book => {
                     const card = document.createElement('div');
-                    card.className = 'bg-slate-800 rounded-xl overflow-hidden shadow-lg border border-slate-700/50 card-hover transition-all duration-300 cursor-pointer fade-in';
+                    // Add visual cue for unavailable books in grid
+                    const availabilityClass = book.available ? '' : 'card-unavailable';
+                    card.className = `bg-slate-800 rounded-xl overflow-hidden shadow-lg border border-slate-700/50 card-hover transition-all duration-300 cursor-pointer fade-in ${availabilityClass}`;
                     card.onclick = () => openModal(book);
 
-                    // Determine category color class
                     const categoryClass = `cat-${book.category}`;
+                    
+                    // Badge logic
+                    let badgeHTML = '';
+                    if(!book.available) {
+                        badgeHTML = `<div class="absolute top-3 left-3 px-2 py-1 text-xs font-bold rounded shadow-sm bg-red-500 text-white">Checked Out</div>`;
+                    }
 
                     card.innerHTML = `
                         <div class="relative aspect-[2/3] bg-slate-900 overflow-hidden group">
@@ -382,6 +540,9 @@
                             </div>
                             <img src="${book.image}" alt="${book.title}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.style.display='none'">
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-80"></div>
+                            
+                            ${badgeHTML}
+                            
                             <div class="absolute bottom-4 left-4 right-4">
                                 <span class="inline-block px-2 py-1 text-xs font-bold rounded mb-2 bg-emerald-500/20 text-emerald-200 backdrop-blur-sm border border-emerald-500/30">${book.genre}</span>
                             </div>
@@ -396,7 +557,7 @@
                             <p class="text-sm text-slate-400 font-medium mb-2 line-clamp-1">by ${book.author}</p>
                             
                             <div class="flex items-center justify-between text-sm text-slate-400 mb-3">
-                                <span>${book.year}</span>
+                                <span>${book.year === 0 ? 'Unknown Year' : book.year}</span>
                                 <div class="flex items-center text-yellow-400 font-semibold">
                                     <i class="fa-solid fa-star text-xs mr-1"></i>${book.rating}
                                 </div>
@@ -418,7 +579,7 @@
             document.getElementById('modalAuthor').innerText = `by ${book.author}`;
             document.getElementById('modalGenre').innerText = book.genre;
             document.getElementById('modalRating').innerText = book.rating;
-            document.getElementById('modalYear').innerText = book.year;
+            document.getElementById('modalYear').innerText = book.year === 0 ? 'Unknown' : book.year;
             document.getElementById('modalPages').innerText = `${book.pages} pages`;
             document.getElementById('modalCategory').innerText = book.category;
             document.getElementById('modalDescription').innerText = book.description;
@@ -431,9 +592,34 @@
             // Set Category badge color in modal
             const catBadge = document.getElementById('modalCategory');
             catBadge.className = `px-2.5 py-1 rounded text-sm font-bold shadow-sm cat-${book.category}`;
+            
+            updateModalStatusUI(book);
 
             modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function updateModalStatusUI(book) {
+             const statusDiv = document.getElementById('modalStatus');
+             const actionBtn = document.getElementById('actionButton');
+
+             if (book.available) {
+                 // Status Text
+                 statusDiv.innerHTML = `<i class="fa-solid fa-check-circle mr-2 status-available"></i><span class="text-emerald-400">Available</span>`;
+                 
+                 // Action Button
+                 actionBtn.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2";
+                 actionBtn.innerHTML = `<i class="fa-solid fa-bookmark"></i> Reserve Book`;
+                 actionBtn.disabled = false;
+             } else {
+                 // Status Text
+                 statusDiv.innerHTML = `<i class="fa-solid fa-circle-xmark mr-2 status-checked-out"></i><span class="text-red-400">Checked Out</span>`;
+                 
+                 // Action Button
+                 actionBtn.className = "w-full bg-slate-700 text-slate-400 font-medium py-2.5 px-4 rounded-lg cursor-not-allowed flex items-center justify-center gap-2";
+                 actionBtn.innerHTML = `<i class="fa-solid fa-clock"></i> Currently Unavailable`;
+                 actionBtn.disabled = true;
+             }
         }
 
         function closeModal() {
