@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LibriVault - Digital Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b; 
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        /* Age/Category Badges Colors */
+        .cat-Children { background-color: #22c55e; color: white; }      /* Green */
+        .cat-Teens { background-color: #eab308; color: black; }         /* Yellow */
+        .cat-YA { background-color: #f97316; color: white; }            /* Orange (Young Adult) */
+        .cat-Adult { background-color: #ef4444; color: white; }         /* Red */
+        .cat-Academic { background-color: #3b82f6; color: white; }      /* Blue */
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-slate-200">
+
+    <!-- Navbar -->
+    <nav class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="resetApp()">
+                    <!-- Changed icon to Book -->
+                    <i class="fa-solid fa-book-open text-3xl text-emerald-500"></i>
+                    <span class="text-xl font-bold tracking-wide text-white">Libri<span class="text-emerald-500">Vault</span></span>
+                </div>
+                
+                <!-- Desktop Search -->
+                <div class="hidden md:block flex-1 max-w-md mx-4">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <i class="fa-solid fa-magnifying-glass text-slate-500"></i>
+                        </span>
+                        <input type="text" id="searchInput" placeholder="Search titles, authors, or genres..." 
+                            class="w-full bg-slate-800 text-white border border-slate-700 rounded-full py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent placeholder-slate-500 transition-all">
+                    </div>
+                </div>
+
+                <!-- Mobile Filter Button -->
+                <div class="md:hidden">
+                    <button id="mobileMenuBtn" class="text-slate-300 hover:text-white">
+                        <i class="fa-solid fa-sliders text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Search (Expandable) -->
+        <div id="mobileSearchPanel" class="hidden md:hidden border-t border-slate-800 bg-slate-900 p-4">
+             <input type="text" id="mobileSearchInput" placeholder="Search..." class="w-full bg-slate-800 text-white border border-slate-700 rounded-lg py-2 px-4 focus:ring-2 focus:ring-emerald-500">
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Filters & Stats -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            
+            <!-- Filter Tags (Book Genres) -->
+            <div class="flex flex-wrap gap-2" id="genreFilters">
+                <button onclick="filterByGenre('All')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 transition-all hover:bg-emerald-500 active-filter">All</button>
+                <button onclick="filterByGenre('Fiction')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Fiction</button>
+                <button onclick="filterByGenre('Fantasy')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Fantasy</button>
+                <button onclick="filterByGenre('Sci-Fi')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Sci-Fi</button>
+                <button onclick="filterByGenre('Mystery')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Mystery</button>
+                <button onclick="filterByGenre('Classic')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Classic</button>
+                <button onclick="filterByGenre('Non-Fiction')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Non-Fiction</button>
+            </div>
+
+            <!-- Sort/Count -->
+            <div class="flex items-center justify-between md:justify-end w-full md:w-auto text-slate-400 text-sm">
+                <span id="bookCount">Showing 0 books</span>
+                <div class="ml-4 flex items-center gap-2">
+                    <label for="sortSelect">Sort:</label>
+                    <select id="sortSelect" class="bg-slate-800 border-none rounded text-slate-200 text-sm focus:ring-1 focus:ring-emerald-500 py-1 px-2 cursor-pointer">
+                        <option value="newest">Newest</option>
+                        <option value="oldest">Oldest</option>
+                        <option value="rating">Top Rated</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Book Grid -->
+        <div id="bookGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Book Cards will be injected here -->
+        </div>
+
+        <!-- No Results State -->
+        <div id="noResults" class="hidden flex flex-col items-center justify-center py-20 text-slate-500">
+            <i class="fa-solid fa-book-open text-6xl mb-4 opacity-20"></i>
+            <p class="text-xl font-semibold">No books found</p>
+            <p class="text-sm">Try adjusting your search or filters.</p>
+            <button onclick="resetApp()" class="mt-4 text-emerald-400 hover:text-emerald-300 underline">Clear all filters</button>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center text-slate-500">
+            <p class="mb-2">&copy; 2025 LibriVault. All rights reserved.</p>
+            <p class="text-xs">Library Classification System V1.0</p>
+        </div>
+    </footer>
+
+    <!-- Modal -->
+    <div id="bookModal" class="fixed inset-0 z-[100] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- Background backdrop -->
+        <div class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
+
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-2xl bg-slate-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-slate-700">
+                
+                <!-- Close Button -->
+                <button onclick="closeModal()" class="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+
+                <div class="flex flex-col md:flex-row">
+                    <!-- Modal Image (Book Cover style) -->
+                    <div class="md:w-2/5 h-64 md:h-auto relative bg-slate-900">
+                         <div id="modalImagePlaceholder" class="w-full h-full flex items-center justify-center text-slate-700 bg-slate-900">
+                            <i class="fa-solid fa-book text-4xl"></i>
+                         </div>
+                         <img id="modalImage" src="" alt="Book Cover" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'; this.previousElementSibling.style.display='flex'">
+                    </div>
+
+                    <!-- Modal Content -->
+                    <div class="md:w-3/5 p-6 md:p-8">
+                        <div class="flex items-start justify-between mb-2">
+                            <span id="modalGenre" class="text-xs font-bold tracking-wider uppercase text-emerald-400">Fiction</span>
+                            <div class="flex items-center gap-1 text-yellow-400">
+                                <i class="fa-solid fa-star"></i>
+                                <span id="modalRating" class="font-bold text-white">4.8</span>
+                            </div>
+                        </div>
+                        
+                        <h3 id="modalTitle" class="text-2xl md:text-3xl font-bold text-white mb-1 leading-tight">Book Title</h3>
+                        <p id="modalAuthor" class="text-lg text-slate-300 mb-4 font-medium">by Author Name</p>
+                        
+                        <div class="flex flex-wrap items-center gap-3 text-sm text-slate-400 mb-6">
+                            <span id="modalYear">1999</span>
+                            <span>&bull;</span>
+                            <span id="modalPages">320 pages</span>
+                            <span>&bull;</span>
+                            <span id="modalCategory" class="px-2 py-0.5 rounded text-xs font-bold text-slate-900 bg-slate-200">Adult</span>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="text-sm font-semibold text-slate-300 uppercase tracking-wide mb-1">Synopsis</h4>
+                                <p id="modalDescription" class="text-slate-400 leading-relaxed text-sm md:text-base">
+                                    Book description goes here...
+                                </p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700/50">
+                                <div>
+                                    <h4 class="text-xs font-semibold text-slate-500 uppercase">Location</h4>
+                                    <p id="modalLocation" class="text-slate-200 text-sm">Shelf A-12</p>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-semibold text-slate-500 uppercase">Status</h4>
+                                    <p class="text-emerald-400 text-sm font-bold"><i class="fa-solid fa-check-circle mr-1"></i> Available</p>
+                                </div>
+                            </div>
+
+                            <div class="pt-4">
+                                <button class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-bookmark"></i> Reserve Book
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Mock Data for Books ---
+        const books = [
+            {
+                id: 1,
+                title: "The Great Gatsby",
+                author: "F. Scott Fitzgerald",
+                genre: "Classic",
+                year: 1925,
+                rating: 4.2,
+                category: "Adult",
+                pages: 180,
+                location: "Shelf C-04",
+                description: "A 1925 novel that follows a cast of characters living in the fictional towns of West Egg and East Egg on prosperous Long Island in the summer of 1922.",
+                image: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=600" 
+            },
+            {
+                id: 2,
+                title: "Dune",
+                author: "Frank Herbert",
+                genre: "Sci-Fi",
+                year: 1965,
+                rating: 4.7,
+                category: "Adult",
+                pages: 412,
+                location: "Shelf S-12",
+                description: "Set on the desert planet Arrakis, Dune is the story of the boy Paul Atreides, heir to a noble family tasked with ruling an inhospitable world where the only thing of value is the 'spice' melange.",
+                image: "https://images.unsplash.com/photo-1541963463532-d68292c34b19?auto=format&fit=crop&q=80&w=600"
+            },
+            {
+                id: 3,
+                title: "Harry Potter and the Sorcerer's Stone",
+                author: "J.K. Rowling",
+                genre: "Fantasy",
+                year: 1997,
+                rating: 4.9,
+                category: "Children",
+                pages: 309,
+                location: "Shelf Y-01",
+                description: "An orphaned boy enrolls in a school of wizardry, where he learns the truth about himself, his family and the terrible evil that haunts the magical world.",
+                image: "https://images.unsplash.com/photo-1618666012174-83b441c0bc76?auto=format&fit=crop&q=80&w=600"
+            },
+            {
+                id: 4,
+                title: "The Hobbit",
+                author: "J.R.R. Tolkien",
+                genre: "Fantasy",
+                year: 1937,
+                rating: 4.8,
+                category: "Teens",
+                pages: 310,
+                location: "Shelf F-22",
+                description: "A reluctant Hobbit, Bilbo Baggins, sets out to the Lonely Mountain with a spirited group of dwarves to reclaim their mountain home, and the gold within it from the dragon Smaug.",
+                image: "https://images.unsplash.com/photo-1629196911514-cfd8d63f37f5?auto=format&fit=crop&q=80&w=600"
+            },
+            {
+                id: 5,
+                title: "1984",
+                author: "George Orwell",
+                genre: "Sci-Fi",
+                year: 1949,
+                rating: 4.6,
+                category: "Adult",
+                pages: 328,
+                location: "Shelf C-09",
+                description: "Among the seminal texts of the 20th century, Nineteen Eighty-Four is a rare work that grows more haunting as its futuristic purgatory becomes more real.",
+                image: "https://images.unsplash.com/photo-1535905557558-afc4877a26fc?auto=format&fit=crop&q=80&w=600"
+            },
+            {
+                id: 6,
+                title: "The Da Vinci Code",
+                author: "Dan Brown",
+                genre: "Mystery",
+                year: 2003,
+                rating: 3.9,
+                category: "Adult",
+                pages: 489,
+                location: "Shelf M-15",
+                description: "A murder in the Louvre and clues in Da Vinci paintings lead to the discovery of a religious mystery protected by a secret society for two thousand years.",
+                image: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=600"
+            },
+            {
+                id: 7,
+                title: "Sapiens: A Brief History of Humankind",
+                author: "Yuval Noah Harari",
+                genre: "Non-Fiction",
+                year: 2011,
+                rating: 4.5,
+                category: "Adult",
+                pages: 443,
+                location: "Shelf N-02",
+                description: "100,000 years ago, at least six human species inhabited the earth. Today there is just one. Us. Homo sapiens. How did our species succeed in the battle for dominance?",
+                image: "https://images.unsplash.com/photo-1550399105-c4db5fb85c18?auto=format&fit=crop&q=80&w=600"
+            },
+            {
+                id: 8,
+                title: "Charlotte's Web",
+                author: "E.B. White",
+                genre: "Fiction",
+                year: 1952,
+                rating: 4.8,
+                category: "Children",
+                pages: 192,
+                location: "Shelf K-05",
+                description: "Wilbur the pig is desolate when he discovers that he is destined to be the farmer's dinner until his spider friend, Charlotte, decides to help him.",
+                image: "https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&q=80&w=600"
+            },
+             {
+                id: 9,
+                title: "The Hunger Games",
+                author: "Suzanne Collins",
+                genre: "Sci-Fi",
+                year: 2008,
+                rating: 4.3,
+                category: "YA",
+                pages: 374,
+                location: "Shelf T-18",
+                description: "In the ruins of a place once known as North America lies the nation of Panem, a shining Capitol surrounded by twelve outlying districts. The Capitol is harsh and cruel and keeps the districts in line by forcing them all to send one boy and one girl between the ages of twelve and eighteen to participate in the annual Hunger Games.",
+                image: "https://images.unsplash.com/photo-1535572290543-960a8046f5af?auto=format&fit=crop&q=80&w=600"
+            },
+            {
+                id: 10,
+                title: "Sherlock Holmes: The Complete Novels",
+                author: "Arthur Conan Doyle",
+                genre: "Mystery",
+                year: 1887,
+                rating: 4.9,
+                category: "Adult",
+                pages: 1059,
+                location: "Shelf M-01",
+                description: "Sherlock Holmes is a fictional detective created by British author Arthur Conan Doyle. Referring to himself as a 'consulting detective' in the stories, Holmes is known for his proficiency with observation.",
+                image: "https://images.unsplash.com/photo-1476275466078-4007374efbbe?auto=format&fit=crop&q=80&w=600"
+            },
+            {
+                id: 11,
+                title: "Pride and Prejudice",
+                author: "Jane Austen",
+                genre: "Classic",
+                year: 1813,
+                rating: 4.6,
+                category: "Adult",
+                pages: 279,
+                location: "Shelf C-02",
+                description: "Since its immediate success in 1813, Pride and Prejudice has remained one of the most popular novels in the English language. Jane Austen called this brilliant work 'her own darling child'.",
+                image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=600"
+            }
+        ];
+
+        // --- State ---
+        let currentFilter = 'All';
+        let currentSort = 'newest';
+        let searchQuery = '';
+
+        // --- DOM Elements ---
+        const bookGrid = document.getElementById('bookGrid');
+        const searchInput = document.getElementById('searchInput');
+        const mobileSearchInput = document.getElementById('mobileSearchInput');
+        const sortSelect = document.getElementById('sortSelect');
+        const genreFilters = document.getElementById('genreFilters');
+        const bookCount = document.getElementById('bookCount');
+        const noResults = document.getElementById('noResults');
+        const modal = document.getElementById('bookModal');
+
+        // --- Initialization ---
+        function init() {
+            renderBooks();
+
+            // Search Listeners
+            searchInput.addEventListener('input', (e) => handleSearch(e.target.value));
+            mobileSearchInput.addEventListener('input', (e) => handleSearch(e.target.value));
+            
+            // Sort Listener
+            sortSelect.addEventListener('change', (e) => {
+                currentSort = e.target.value;
+                renderBooks();
+            });
+
+            // Mobile Menu Toggle
+            document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+                const panel = document.getElementById('mobileSearchPanel');
+                panel.classList.toggle('hidden');
+            });
+        }
+
+        // --- Core Logic ---
+        function handleSearch(query) {
+            searchQuery = query.toLowerCase();
+            renderBooks();
+        }
+
+        function filterByGenre(genre) {
+            currentFilter = genre;
+            
+            // Update visual button state
+            const buttons = genreFilters.querySelectorAll('button');
+            buttons.forEach(btn => {
+                if(btn.innerText === genre) {
+                    btn.classList.remove('bg-slate-800', 'text-slate-300');
+                    btn.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-500/30');
+                } else {
+                    btn.classList.add('bg-slate-800', 'text-slate-300');
+                    btn.classList.remove('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-500/30');
+                }
+            });
+
+            renderBooks();
+        }
+
+        function resetApp() {
+            searchInput.value = '';
+            mobileSearchInput.value = '';
+            searchQuery = '';
+            filterByGenre('All');
+        }
+
+        function getFilteredAndSortedBooks() {
+            let filtered = books.filter(book => {
+                const matchesGenre = currentFilter === 'All' || book.genre === currentFilter;
+                const matchesSearch = book.title.toLowerCase().includes(searchQuery) || 
+                                      book.author.toLowerCase().includes(searchQuery);
+                return matchesGenre && matchesSearch;
+            });
+
+            return filtered.sort((a, b) => {
+                if (currentSort === 'newest') return b.year - a.year;
+                if (currentSort === 'oldest') return a.year - b.year;
+                if (currentSort === 'rating') return b.rating - a.rating;
+                return 0;
+            });
+        }
+
+        function renderBooks() {
+            const displayBooks = getFilteredAndSortedBooks();
+            
+            bookCount.innerText = `Showing ${displayBooks.length} book${displayBooks.length !== 1 ? 's' : ''}`;
+            bookGrid.innerHTML = '';
+
+            if (displayBooks.length === 0) {
+                bookGrid.classList.add('hidden');
+                noResults.classList.remove('hidden');
+            } else {
+                bookGrid.classList.remove('hidden');
+                noResults.classList.add('hidden');
+                
+                displayBooks.forEach(book => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-slate-800 rounded-xl overflow-hidden shadow-lg border border-slate-700/50 card-hover transition-all duration-300 cursor-pointer fade-in';
+                    card.onclick = () => openModal(book);
+
+                    // Determine category color class
+                    const categoryClass = `cat-${book.category}`;
+
+                    card.innerHTML = `
+                        <div class="relative aspect-[2/3] bg-slate-900 overflow-hidden group">
+                            <div class="absolute inset-0 flex items-center justify-center text-slate-700">
+                                <i class="fa-solid fa-book-open text-4xl"></i>
+                            </div>
+                            <img src="${book.image}" alt="${book.title}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.style.display='none'">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-80"></div>
+                            <div class="absolute bottom-4 left-4 right-4">
+                                <span class="inline-block px-2 py-1 text-xs font-bold rounded mb-2 bg-emerald-500/20 text-emerald-200 backdrop-blur-sm border border-emerald-500/30">${book.genre}</span>
+                            </div>
+                             <div class="absolute top-3 right-3 flex flex-col gap-2 items-end">
+                                <span class="px-2 py-1 text-xs font-bold rounded shadow-sm ${categoryClass}">${book.category}</span>
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex justify-between items-start mb-1">
+                                <h3 class="text-lg font-bold text-white leading-tight group-hover:text-emerald-400 transition-colors line-clamp-1" title="${book.title}">${book.title}</h3>
+                            </div>
+                            <p class="text-sm text-slate-400 font-medium mb-2 line-clamp-1">by ${book.author}</p>
+                            
+                            <div class="flex items-center justify-between text-sm text-slate-400 mb-3">
+                                <span>${book.year}</span>
+                                <div class="flex items-center text-yellow-400 font-semibold">
+                                    <i class="fa-solid fa-star text-xs mr-1"></i>${book.rating}
+                                </div>
+                            </div>
+                            <p class="text-sm text-slate-400 line-clamp-3 mb-4">${book.description}</p>
+                            <div class="flex items-center text-xs font-medium text-emerald-400 group hover:text-emerald-300 transition-colors">
+                                View Details <i class="fa-solid fa-arrow-right ml-1 transform group-hover:translate-x-1 transition-transform"></i>
+                            </div>
+                        </div>
+                    `;
+                    bookGrid.appendChild(card);
+                });
+            }
+        }
+
+        // --- Modal Logic ---
+        function openModal(book) {
+            document.getElementById('modalTitle').innerText = book.title;
+            document.getElementById('modalAuthor').innerText = `by ${book.author}`;
+            document.getElementById('modalGenre').innerText = book.genre;
+            document.getElementById('modalRating').innerText = book.rating;
+            document.getElementById('modalYear').innerText = book.year;
+            document.getElementById('modalPages').innerText = `${book.pages} pages`;
+            document.getElementById('modalCategory').innerText = book.category;
+            document.getElementById('modalDescription').innerText = book.description;
+            document.getElementById('modalLocation').innerText = book.location;
+            
+            const img = document.getElementById('modalImage');
+            img.src = book.image;
+            img.style.display = 'block';
+
+            // Set Category badge color in modal
+            const catBadge = document.getElementById('modalCategory');
+            catBadge.className = `px-2.5 py-1 rounded text-sm font-bold shadow-sm cat-${book.category}`;
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+
+        // Initialize the app
+        init();
+
+    </script>
+</body>
+</html>
