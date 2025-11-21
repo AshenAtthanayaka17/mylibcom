@@ -47,6 +47,7 @@
         .cat-YA { background-color: #f97316; color: white; }            /* Orange (Young Adult) */
         .cat-Adult { background-color: #ef4444; color: white; }         /* Red */
         .cat-Academic { background-color: #3b82f6; color: white; }      /* Blue */
+        .cat-Not-Rated { background-color: #ffffff; color: white; }     /* White */
 
         .fade-in {
             animation: fadeIn 0.5s ease-in-out;
@@ -111,6 +112,8 @@
                 <button onclick="filterByGenre('Mystery')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Mystery</button>
                 <button onclick="filterByGenre('Classic')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Classic</button>
                 <button onclick="filterByGenre('Non-Fiction')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Non-Fiction</button>
+                <button onclick="filterByGenre('Poetry')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Poetry</button>
+                <button onclick="filterByGenre('Novel')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Novel</button>
             </div>
 
             <!-- Sort/Count -->
@@ -229,146 +232,16 @@
         const books = [
             {
                 id: 1,
-                title: "The Great Gatsby",
-                author: "F. Scott Fitzgerald",
-                genre: "Classic",
-                year: 1925,
-                rating: 4.2,
-                category: "Adult",
-                pages: 180,
-                location: "Shelf C-04",
-                description: "A 1925 novel that follows a cast of characters living in the fictional towns of West Egg and East Egg on prosperous Long Island in the summer of 1922.",
-                image: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=600" 
-            },
-            {
-                id: 2,
-                title: "Dune",
-                author: "Frank Herbert",
-                genre: "Sci-Fi",
-                year: 1965,
-                rating: 4.7,
-                category: "Adult",
-                pages: 412,
-                location: "Shelf S-12",
-                description: "Set on the desert planet Arrakis, Dune is the story of the boy Paul Atreides, heir to a noble family tasked with ruling an inhospitable world where the only thing of value is the 'spice' melange.",
-                image: "https://images.unsplash.com/photo-1541963463532-d68292c34b19?auto=format&fit=crop&q=80&w=600"
-            },
-            {
-                id: 3,
-                title: "Harry Potter and the Sorcerer's Stone",
-                author: "J.K. Rowling",
-                genre: "Fantasy",
-                year: 1997,
-                rating: 4.9,
-                category: "Children",
-                pages: 309,
-                location: "Shelf Y-01",
-                description: "An orphaned boy enrolls in a school of wizardry, where he learns the truth about himself, his family and the terrible evil that haunts the magical world.",
-                image: "https://images.unsplash.com/photo-1618666012174-83b441c0bc76?auto=format&fit=crop&q=80&w=600"
-            },
-            {
-                id: 4,
-                title: "The Hobbit",
-                author: "J.R.R. Tolkien",
-                genre: "Fantasy",
-                year: 1937,
-                rating: 4.8,
+                title: "පයිතගරස් සියදිවි නසා ගනී",
+                author: "Ruuso",
+                genre: "Poetry",
+                year: 0000,
+                rating: 8.2,
                 category: "Teens",
-                pages: 310,
-                location: "Shelf F-22",
-                description: "A reluctant Hobbit, Bilbo Baggins, sets out to the Lonely Mountain with a spirited group of dwarves to reclaim their mountain home, and the gold within it from the dragon Smaug.",
-                image: "https://images.unsplash.com/photo-1629196911514-cfd8d63f37f5?auto=format&fit=crop&q=80&w=600"
-            },
-            {
-                id: 5,
-                title: "1984",
-                author: "George Orwell",
-                genre: "Sci-Fi",
-                year: 1949,
-                rating: 4.6,
-                category: "Adult",
-                pages: 328,
-                location: "Shelf C-09",
-                description: "Among the seminal texts of the 20th century, Nineteen Eighty-Four is a rare work that grows more haunting as its futuristic purgatory becomes more real.",
-                image: "https://images.unsplash.com/photo-1535905557558-afc4877a26fc?auto=format&fit=crop&q=80&w=600"
-            },
-            {
-                id: 6,
-                title: "The Da Vinci Code",
-                author: "Dan Brown",
-                genre: "Mystery",
-                year: 2003,
-                rating: 3.9,
-                category: "Adult",
-                pages: 489,
-                location: "Shelf M-15",
-                description: "A murder in the Louvre and clues in Da Vinci paintings lead to the discovery of a religious mystery protected by a secret society for two thousand years.",
-                image: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=600"
-            },
-            {
-                id: 7,
-                title: "Sapiens: A Brief History of Humankind",
-                author: "Yuval Noah Harari",
-                genre: "Non-Fiction",
-                year: 2011,
-                rating: 4.5,
-                category: "Adult",
-                pages: 443,
-                location: "Shelf N-02",
-                description: "100,000 years ago, at least six human species inhabited the earth. Today there is just one. Us. Homo sapiens. How did our species succeed in the battle for dominance?",
-                image: "https://images.unsplash.com/photo-1550399105-c4db5fb85c18?auto=format&fit=crop&q=80&w=600"
-            },
-            {
-                id: 8,
-                title: "Charlotte's Web",
-                author: "E.B. White",
-                genre: "Fiction",
-                year: 1952,
-                rating: 4.8,
-                category: "Children",
-                pages: 192,
-                location: "Shelf K-05",
-                description: "Wilbur the pig is desolate when he discovers that he is destined to be the farmer's dinner until his spider friend, Charlotte, decides to help him.",
-                image: "https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&q=80&w=600"
-            },
-             {
-                id: 9,
-                title: "The Hunger Games",
-                author: "Suzanne Collins",
-                genre: "Sci-Fi",
-                year: 2008,
-                rating: 4.3,
-                category: "YA",
-                pages: 374,
-                location: "Shelf T-18",
-                description: "In the ruins of a place once known as North America lies the nation of Panem, a shining Capitol surrounded by twelve outlying districts. The Capitol is harsh and cruel and keeps the districts in line by forcing them all to send one boy and one girl between the ages of twelve and eighteen to participate in the annual Hunger Games.",
-                image: "https://images.unsplash.com/photo-1535572290543-960a8046f5af?auto=format&fit=crop&q=80&w=600"
-            },
-            {
-                id: 10,
-                title: "Sherlock Holmes: The Complete Novels",
-                author: "Arthur Conan Doyle",
-                genre: "Mystery",
-                year: 1887,
-                rating: 4.9,
-                category: "Adult",
-                pages: 1059,
-                location: "Shelf M-01",
-                description: "Sherlock Holmes is a fictional detective created by British author Arthur Conan Doyle. Referring to himself as a 'consulting detective' in the stories, Holmes is known for his proficiency with observation.",
-                image: "https://images.unsplash.com/photo-1476275466078-4007374efbbe?auto=format&fit=crop&q=80&w=600"
-            },
-            {
-                id: 11,
-                title: "Pride and Prejudice",
-                author: "Jane Austen",
-                genre: "Classic",
-                year: 1813,
-                rating: 4.6,
-                category: "Adult",
-                pages: 279,
-                location: "Shelf C-02",
-                description: "Since its immediate success in 1813, Pride and Prejudice has remained one of the most popular novels in the English language. Jane Austen called this brilliant work 'her own darling child'.",
-                image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=600"
+                pages: 80,
+                location: "Shelf B-19",
+                description: "Not available at the moment",
+                image: "https://booklovers.lk/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-30-at-00.28.23-2.jpeg" 
             }
         ];
 
