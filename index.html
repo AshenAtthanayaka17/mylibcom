@@ -226,7 +226,7 @@
                                 <div>
                                     <h4 class="text-xs font-semibold text-slate-500 uppercase">Status</h4>
                                     <div id="modalStatus" class="flex items-center text-sm font-bold">
-                                        <!-- Injected via JS -->
+                                        <!-- JS walin yako gahuwe JS Walin -->
                                     </div>
                                 </div>
                             </div>
@@ -234,7 +234,7 @@
                             <!-- Action Button -->
                             <div class="pt-4">
                                 <button id="actionButton" class="w-full text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
-                                    <!-- Injected via JS -->
+                                    <!-- JS file eka balapan -->
                                 </button>
                             </div>
                         </div>
@@ -372,7 +372,7 @@
             });
         }
 
-        // --- Core Logic ---
+        // --- Core Logics ---
         function handleSearch(query) {
             searchQuery = query.toLowerCase();
             renderBooks();
@@ -528,7 +528,7 @@
                  actionBtn.disabled = false;
              } else {
                  // Status Text
-                 statusDiv.innerHTML = `<i class="fa-solid fa-circle-xmark mr-2 status-checked-out"></i><span class="text-red-400">Checked Out</span>`;
+                 statusDiv.innerHTML = `<i class="fa-solid fa-circle-xmark mr-2 status-checked-out"></i><span class="text-red-400">Not Available</span>`;
                  
                  // Action Button
                  actionBtn.className = "w-full bg-slate-700 text-slate-400 font-medium py-2.5 px-4 rounded-lg cursor-not-allowed flex items-center justify-center gap-2";
