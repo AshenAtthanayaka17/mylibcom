@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mylibcom - Digital Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Inter', 'Noto Sans Sinhala', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b; 
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        /* Category Badges Colors */
+        .cat-Children { background-color: #22c55e; color: white; }     /* Green */
+        .cat-Teens { background-color: #eab308; color: black; }         /* Yellow */
+        .cat-YA { background-color: #f97316; color: white; }            /* Orange */
+        .cat-Adult { background-color: #ef4444; color: white; }         /* Red */
+        .cat-Academic { background-color: #3b82f6; color: white; }      /* Blue */
+
+        /* Availability Status Styles */
+        .status-available { color: #34d399; } /* Emerald 400 */
+        .status-checked-out { color: #f87171; } /* Red 400 */
+        
+        /* Dim card if checked out */
+        .card-unavailable img {
+            filter: grayscale(100%);
+            opacity: 0.6;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-slate-200">
+
+    <!-- Navbar -->
+    <nav class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="resetApp()">
+                    <i class="fa-solid fa-book-open text-3xl text-emerald-500"></i>
+                    <span class="text-xl font-bold tracking-wide text-white">Mylib<span class="text-emerald-500">Com</span></span>
+                </div>
+                
+                <!-- Desktop Search -->
+                <div class="hidden md:block flex-1 max-w-md mx-4">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <i class="fa-solid fa-magnifying-glass text-slate-500"></i>
+                        </span>
+                        <input type="text" id="searchInput" placeholder="Search titles, authors, or genres..." 
+                            class="w-full bg-slate-800 text-white border border-slate-700 rounded-full py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent placeholder-slate-500 transition-all">
+                    </div>
+                </div>
+
+                <!-- Mobile Filter Button -->
+                <div class="md:hidden">
+                    <button id="mobileMenuBtn" class="text-slate-300 hover:text-white">
+                        <i class="fa-solid fa-sliders text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Search (Expandable) -->
+        <div id="mobileSearchPanel" class="hidden md:hidden border-t border-slate-800 bg-slate-900 p-4">
+             <input type="text" id="mobileSearchInput" placeholder="Search..." class="w-full bg-slate-800 text-white border border-slate-700 rounded-lg py-2 px-4 focus:ring-2 focus:ring-emerald-500">
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Filters & Stats -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            
+            <!-- Filter Tags -->
+            <div class="flex flex-wrap gap-2" id="genreFilters">
+                <button onclick="filterByGenre('All')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 transition-all hover:bg-emerald-500 active-filter">All</button>
+                <button onclick="filterByGenre('Poetry')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Poetry</button>
+                <button onclick="filterByGenre('Fiction')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Fiction</button>
+                <button onclick="filterByGenre('Fantasy')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Fantasy</button>
+                <button onclick="filterByGenre('Sci-Fi')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Sci-Fi</button>
+                <button onclick="filterByGenre('Mystery')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Mystery</button>
+                <button onclick="filterByGenre('Classic')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Classic</button>
+                <button onclick="filterByGenre('Non-Fiction')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Non-Fiction</button>
+                <button onclick="filterByGenre('Horror')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Horror</button>
+                <button onclick="filterByGenre('Novel')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Novels</button>
+                <button onclick="filterByGenre('Romance')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Romance</button>
+                <button onclick="filterByGenre('Miscellaneous')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Miscellaneous</button>
+            </div>
+
+            <!-- Sort/Count -->
+            <div class="flex items-center justify-between md:justify-end w-full md:w-auto text-slate-400 text-sm">
+                <span id="bookCount">Showing 0 books</span>
+                <div class="ml-4 flex items-center gap-2">
+                    <label for="sortSelect">Sort:</label>
+                    <select id="sortSelect" class="bg-slate-800 border-none rounded text-slate-200 text-sm focus:ring-1 focus:ring-emerald-500 py-1 px-2 cursor-pointer">
+                        <option value="newest">Newest</option>
+                        <option value="oldest">Oldest</option>
+                        <option value="rating">Top Rated</option>
+                        <option value="available">Available First</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Book Grid -->
+        <div id="bookGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Book Cards will be injected here -->
+        </div>
+
+        <!-- No Results State -->
+        <div id="noResults" class="hidden flex flex-col items-center justify-center py-20 text-slate-500">
+            <i class="fa-solid fa-book-open text-6xl mb-4 opacity-20"></i>
+            <p class="text-xl font-semibold">No books found</p>
+            <p class="text-sm">Try adjusting your search or filters.</p>
+            <button onclick="resetApp()" class="mt-4 text-emerald-400 hover:text-emerald-300 underline">Clear all filters</button>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-800 pt-16 pb-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+                <!-- Brand & Credits -->
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="fa-solid fa-book-open text-2xl text-emerald-500"></i>
+                        <span class="text-xl font-bold tracking-wide text-white">Mylib<span class="text-emerald-500">Com</span></span>
+                    </div>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        Empowering readers with a seamless digital library experience. Discover, track, and reserve your favorite books with ease.
+                    </p>
+                    <div class="text-sm text-slate-500 border-l-2 border-emerald-500 pl-3">
+                        <p class="font-medium text-slate-300">Credits</p>
+                        <p>Designed & Developed by <span class="text-emerald-400">Mylib Team</span></p>
+                        <p class="text-xs mt-1">Icons by FontAwesome & Images by Katha.lk</p>
+                    </div>
+                </div>
+
+                <!-- Site Priorities / Quick Links -->
+                <div>
+                    <h3 class="text-white font-bold text-lg mb-6 flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-emerald-500 text-sm"></i> Site Priorities
+                    </h3>
+                    <ul class="space-y-3 text-sm text-slate-400">
+                        <li><a href="#" class="hover:text-emerald-400 transition-colors flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs text-slate-600"></i> User Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-emerald-400 transition-colors flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs text-slate-600"></i> Digital Rights Management</a></li>
+                        <li><a href="#" class="hover:text-emerald-400 transition-colors flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs text-slate-600"></i> Accessibility Statement</a></li>
+                        <li><a href="#" class="hover:text-emerald-400 transition-colors flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs text-slate-600"></i> Community Guidelines</a></li>
+                        <li><a href="#" class="hover:text-emerald-400 transition-colors flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs text-slate-600"></i> Terms of Service</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Us -->
+                <div>
+                    <h3 class="text-white font-bold text-lg mb-6 flex items-center gap-2">
+                        <i class="fa-solid fa-headset text-emerald-500 text-sm"></i> Contact Us
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-400">
+                        <li class="flex items-start gap-3">
+                            <div class="mt-1 bg-slate-800 p-1.5 rounded text-emerald-500"><i class="fa-solid fa-location-dot"></i></div>
+                            <span>123 Library Avenue,<br>Colombo 07, Sri Lanka</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <div class="bg-slate-800 p-1.5 rounded text-emerald-500"><i class="fa-solid fa-phone"></i></div>
+                            <span>+94 11 234 5678</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <div class="bg-slate-800 p-1.5 rounded text-emerald-500"><i class="fa-solid fa-envelope"></i></div>
+                            <span>support@mylibcom.lk</span>
+                        </li>
+                    </ul>
+                    <!-- Socials -->
+                    <div class="flex gap-3 mt-6">
+                        <a href="#" class="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-blue-600 hover:text-white transition-all transform hover:-translate-y-1">
+                            <i class="fa-brands fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-sky-500 hover:text-white transition-all transform hover:-translate-y-1">
+                            <i class="fa-brands fa-twitter"></i>
+                        </a>
+                        <a href="#" class="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-pink-600 hover:text-white transition-all transform hover:-translate-y-1">
+                            <i class="fa-brands fa-instagram"></i>
+                        </a>
+                        <a href="#" class="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-blue-700 hover:text-white transition-all transform hover:-translate-y-1">
+                            <i class="fa-brands fa-linkedin-in"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Bar -->
+            <div class="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
+                <p>&copy; 2025 Mylibcom. All rights reserved.</p>
+                <div class="flex flex-wrap justify-center gap-6">
+                    <span>Library Classification System v1.0</span>
+                    <span class="hidden md:inline text-slate-700">|</span>
+                    <span>Server Time: GMT+5:30</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal -->
+    <div id="bookModal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- Background backdrop -->
+        <div class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
+
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                <div class="relative transform overflow-hidden rounded-2xl bg-slate-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-slate-700">
+                    
+                    <!-- Close Button -->
+                    <button onclick="closeModal()" class="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors cursor-pointer">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+
+                    <div class="flex flex-col md:flex-row">
+                        <!-- Modal Image -->
+                        <div class="md:w-2/5 h-64 md:h-auto relative bg-slate-900">
+                             <div id="modalImagePlaceholder" class="w-full h-full flex items-center justify-center text-slate-700 bg-slate-900 absolute inset-0">
+                                <i class="fa-solid fa-book text-4xl"></i>
+                             </div>
+                             <img id="modalImage" src="" alt="Book Cover" class="absolute inset-0 w-full h-full object-cover relative z-10" onerror="this.style.display='none'; document.getElementById('modalImagePlaceholder').style.display='flex'">
+                        </div>
+
+                        <!-- Modal Content -->
+                        <div class="md:w-3/5 p-6 md:p-8">
+                            <div class="flex items-start justify-between mb-2">
+                                <span id="modalGenre" class="text-xs font-bold tracking-wider uppercase text-emerald-400">Fiction</span>
+                                <div class="flex items-center gap-1 text-yellow-400">
+                                    <i class="fa-solid fa-star"></i>
+                                    <span id="modalRating" class="font-bold text-white">4.8</span>
+                                </div>
+                            </div>
+                            
+                            <h3 id="modalTitle" class="text-2xl md:text-3xl font-bold text-white mb-1 leading-tight">Book Title</h3>
+                            <p id="modalAuthor" class="text-lg text-slate-300 mb-4 font-medium">by Author Name</p>
+                            
+                            <div class="flex flex-wrap items-center gap-3 text-sm text-slate-400 mb-6">
+                                <span id="modalYear">1999</span>
+                                <span>&bull;</span>
+                                <span id="modalPages">320 pages</span>
+                                <span>&bull;</span>
+                                <span id="modalCategory" class="px-2 py-0.5 rounded text-xs font-bold text-slate-900 bg-slate-200">Adult</span>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-slate-300 uppercase tracking-wide mb-1">Description</h4>
+                                    <p id="modalDescription" class="text-slate-400 leading-relaxed text-sm md:text-base h-24 overflow-y-auto pr-2">
+                                        Book description goes here...
+                                    </p>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700/50">
+                                    <div>
+                                        <h4 class="text-xs font-semibold text-slate-500 uppercase">Track Number</h4>
+                                        <p id="modalLocation" class="text-slate-200 text-sm">Shelf A-12</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-semibold text-slate-500 uppercase">Status</h4>
+                                        <div id="modalStatus" class="flex items-center text-sm font-bold">
+                                            <!-- Status Text -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Action Button -->
+                                <div class="pt-4">
+                                    <button id="actionButton" class="w-full text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 uppercase tracking-wide text-sm shadow-lg">
+                                        <!-- Dynamic Button Text -->
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- BOOK DATABASE ---
+        // TO UPDATE AVAILABILITY: 
+        // Find the book in this list and change 'available: true' to 'available: false' (or vice versa).
+        
+        const books = [
+             {
+                id: 1,
+                title: "ඒත් මං ආදරෙයි | Eth Man Adarei",
+                author: "Abdul Umar Sahan Nethmina",
+                genre: "Poetry",
+                year: "Unknown",
+                rating: 6.8,
+                category: "Teens",
+                pages: 100,
+                location: "MLC/P/0001/TN",
+                description: "කවදාහරි දාවසකදි මේ මගුල් කියවලා ඔයාටත් හිතුනොතින් මම පිස්සෙකැයි කියා අද වගෙම එදාටත් තියම් කවියක ලියා පිස්සෙකුගේ ආදරේ තාම දන්නෑ ඔයා ",
+                image: "https://katha.lk/wp-content/uploads/2024/06/s0251-eth-man-aadarei-abdul-umar-sahan-nethmina.webp",
+                available: true 
+            },
+
+            {
+                id: 2,
+                title: "ඉතිං මට සමාවෙන්න | Ithin Mata Samawenna",
+                author: "Abdul Umar Sahan Nethmina",
+                genre: "Poetry",
+                year: "Unknown",
+                rating: 6.9,
+                category: "Teens",
+                pages: 62,
+                location: "MLC/P/00002/TN",
+                description: "බැරිම හින්දා කවමදාවත් ආයෙ ඔබ වෙත හැරෙන්න කිසිත් කියන්න බෑ ඉතිං මට, “සමා වෙනු මැන!” ඇරෙන්න ජීවිතේ තව බොහෝ දුර ඇති අතරමග බෑ මැරෙන්න ඔබත් ඔහොමම මගදි හමුවන වංගුවක් ළඟ හැරෙන්න",
+                image: "https://katha.lk/wp-content/uploads/2024/11/s0504-ithin-mata-samawenna-abdul-umar-sahan-nethmina.webp",
+                available: true 
+            },
+
+            {
+                id: 3,
+                title: "ඒ දවස් හරි වෙනස් | E Dawas Hari Wenas",
+                author: "Abdul Umar Sahan Nethmina",
+                genre: "Novel",
+                year: "Unknown",
+                rating: 8.8,
+                category: "YA",
+                pages: 494,
+                location: "MLC/N/0003/YA",
+                description: "ඉස්සෙල්ලා ම ඔහුට ඇයගෙ හීනි ඇඟිලි තුඩුවල ස්පර්ශය දැනෙන්න ගත්තා. ඒත් එක්ක ම ඇඟිලිවලින් පටං ගත්ත උණුසුමක් මුලු ඇඟ පුරා ම පැතිරෙන විදිහ ඔහුට දැණුනා. ඇගේ අත සිනිඳු වුණා වගේ ම උණුසුම් වුණා. ඒක ඔහුට ඇති කරේ ගුලිවෙලා නිදාගැනීමේ වුවමනාවක්. මූට මේ මොකක් ද වුණේ වගේ ලුක් එකක් එක්ක ඇය ඔහු දිහාවට හැරුණා. මුකුත් නොකිය ම ඔහුත් ඇය දිහා බලාගෙන ඉඳලා තිබුණා. තත්පර දහයක් විතර ඔවුන් එකිනෙකා දිහා බලාගෙන ඉද්දි, ඔහුට ඇත්තට ම හැමදේම හොඳින් සිද්ධවෙයි කියලා දැනෙන්න පටං ගත්තා. ඒ වගේ ම හැමදේම හොඳින් සිද්ධ වේවි කියලා ඔහු විශ්වාස කරන්න පටං අරගෙන තිබුණා. ඒත් එක්ක ම කඳවුරේ කෙළවරකින් කවුදෝ කෑගහනවා ඇහුණා. “සිරිමල් අයියා වැටිලා…”",
+                image: "https://katha.lk/wp-content/uploads/2025/06/S0526-E-Dawas-Hari-Wenas-Abdul-Umar-Sahan-Nethmina.webp",
+                available: true 
+            },
+
+            {
+                id: 4,
+                title: "අබ්දුල් වෙන්න කලින් | Abdul Wenna Kalin",
+                author: "Abdul Umar Sahan Nethmina",
+                genre: "Poetry",
+                year: "Unknown",
+                rating: 4.9,
+                category: "Teens",
+                pages: 80,
+                location: "MLC/P/00004/TN",
+                description: "අපිට පස්සෙන් පියාඹන උං ආයෙ හිරවිය යුතුද කොටුවල තටු කපපු දුක අපි වගේ උං ආයෙමත් ලිය යුතුද පිටුවල ගොරව ගොරවා බලං ඉන්නවා තමයි වටේම අඳුරු කරුවල එහෙව් විටකදි ගින්දරක් මිස එලිය මදි දුර ඈත තරුවල",
+                image: "https://katha.lk/wp-content/uploads/2025/11/S0575-Abdul-Wnna-Kalin-Abdul-Umar-Sahan-Nethmina.webp",
+                available: true 
+            },
+
+            {
+                id: 5,
+                title: "ආකිමිඩිස් සිය දිවි නසා ගනී | Akimidis Siya Diwi Nasa Gani",
+                author: "Ruuso",
+                genre: "Poetry",
+                year: "2022 NOV",
+                rating: 7.0,
+                category: "Teens",
+                pages: 80,
+                location: "MLC/P/00005/TN",
+                description: "එකපාරම මහ හයියෙන් වහින්න ගත්තා කරදරයි නම් තමයි ඒත් මං වහලෙ තෙමෙන තැන් දැනගත්තා",
+                image: "https://rasakatha.lk/wp-content/uploads/2024/09/WhatsApp-Image-2024-09-15-at-8.03.23-AM-548x800.jpeg",
+                available: true
+            },
+
+            {
+                id: 6,
+                title: "අම්මපයි මං කඩුව දුන්නා | Ammapayi Man Kaduwa Dunna",
+                author: "Shashika Sadeep",
+                genre: "Poetry",
+                year: "Unknown",
+                rating: 7.2,
+                category: "Teens",
+                pages: 86,
+                location: "MLC/P/00006/TN",
+                description: "සැඩ සුළඟ දරන්නට නොහැකි තැන රුවලට මග කියපු තරු කැටත් පැන ගියපු රැයකට සයුර මැද මාලිගා කටු කැඩුණු නැවකට ප්‍රේමයකි, ප්‍රදීපාගාරයක එළි වැට",
+                image: "https://rasakatha.lk/wp-content/uploads/2024/01/69-1.jpg",
+                available: false
+            },
+
+            {
+                id: 7,
+                title: "කැමෙලියා | Camellia",
+                author: "Virajini Thennakoo",
+                genre: "Novel",
+                year: "Unknown",
+                rating: 5.8,
+                category: "Teens",
+                pages: 222,
+                location: "MLC/N/00007/TN",
+                description: "“බල්ලො මිනිස්සු වගේ කතා කරන්න පුරුදු වුණා නම් උන් ඔච්චර හොඳ වෙන්නෙ නෑ කියලත් මතක තියාගන්න. එහෙනං උන් ඔයාව හපා කන්නෙ වලිගෙ වනලා” -ඇනිටා",
+                image: "https://katha.lk/wp-content/uploads/2024/06/s0300-camellia-virajini-thennakoon.webp",
+                available: false 
+            },
+
+             {
+                id: 8,
+                title: "රෝජා | Roja",
+                author: "Niluka Brandon",
+                genre: "Romance",
+                year: "Unknown",
+                rating: 4.2,
+                category: "YA",
+                pages: 392,
+                location: "MLC/R/00008/YA",
+                description: "මිනිස්සු… දුබලයන්ව ඉපදෙන්නාහ. මිනිස්සු… ජීවිතයේ යම් යම් යුගවල විවිධ හේතු කාරණාවන් නිසාවෙන් දුබලයන්ව ජීවිතය රැකගන්නාහ. නමුත්… අප කිසිවෙකුටත් දුබලයන්ව මිය යන්නට අයිතියක් නැත. අපි නැඟිටිය යුතුය! අපි හිනැහිය යුතුමය!",
+                image: "https://katha.lk/wp-content/uploads/2024/06/s0296-roja-niluka-brandon.webp",
+                available: false
+            },
+
+             {
+                id: 9,
+                title: "ඇත්ත කියපන් ක්ලියෝපැට්‍රා | Atta Kiyapan Cleopatra",
+                author: "Bebadu Kumara",
+                genre: "Poetry",
+                year: "Unknown",
+                rating: 8.6,
+                category: "Teens",
+                pages: "error 101",
+                location: "MLC/P/00009/TN",
+                description: "ප්‍රේමයේ ඉරිතැළුම් වලට සොයාගෙන නෑ සැත්කම් නමුදු සදහට නුඹේ නමටයි මේ පපුවේ වත්කම් කාලයා විසින් විසඳාවි රිදුම් දෙන සංසාර ගෙත්තම් මම මක්කරන්නද අපිට අපි හිමි නැත්නම්... හිනාව තියෙන දුරකට ඔයා දුවගෙන යන්න මම බලාගෙන ඉන්නම්",
+                image: "https://rasakatha.lk/wp-content/uploads/2024/07/WhatsApp-Image-2024-07-28-at-7.12.56-PM.jpeg",
+                available: true
+            },
+
+             {
+                id: 10,
+                title: "ප්‍රබන්ධ සම්බන්ධ | Fiction Affairs",
+                author: "Sri Jayathilaka",
+                genre: "Novel",
+                year: "Unknown",
+                rating: 7.6,
+                category: "YA",
+                pages: "error 101",
+                location: "MLC/N/00010/YA",
+                description: "Sorry, No description available.",
+                image: "https://rasakatha.lk/wp-content/uploads/2025/05/WhatsApp-Image-2025-05-28-at-9.49.13-PM-430x687.jpeg",
+                available: false
+            },
+
+            {
+                id: 11,
+                title: "London",
+                author: "Edward Rutherfurd",
+                genre: "Novel",
+                year: "1997 JAN",
+                rating: 8.9,
+                category: "YA",
+                pages: 1332,
+                location: "MLC/N-E/00011/YA",
+                description: "Here is Edward Rutherfurd’s classic novel of London, a glorious pageant spanning two thousand years. He brings this vibrant city’s long and noble history alive through the ever-shifting fortunes, fates, and intrigues of half-a-dozen families, from the age of Julius Caesar to the twentieth century. Generation after generation, these families embody the passion, struggle, wealth, and verve of the greatest city in the Old World",
+                image: "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1328313657i/12407442.jpg",
+                available: false
+            },
+
+            {
+                id: 12,
+                title: "Forget Me Not | ෆොගෙට් මී නොට්",
+                author: "Charitha Prawardhi Bandara | Chathuri Damayanthi",
+                genre: "Novel",
+                year: "Unknown",
+                rating: 6.8,
+                category: "Teens",
+                pages: 226,
+                location: "MLC/N/00012/TN",
+                description: "බිඳුණු මිනිස්සුන්ට ආදරය කරන එක කොහෙත්ම ලේසි නෑ යුමී සං කැබලි වෙච්චි ඔවුන්ව තදින් වැළඳගත යුතු වෙනවා මුදු නමුත් ස්ථීර ප්‍රේමයකින්. ඒත් ඒ තියුණු දාර සහිත බිඳුණු කැබලි, වැළදගන්නා ආදරණීයයාව රිදවනවා. ඔහුවත් කපා දමනවා. මට හොඳටම විශ්වාසයි, ආදරය කියන්නේ කැපකිරීමක්” වග කියන්නට ඇත්තේ, මේ ලෝකයේ මුල් වතාවට බිඳුණු ගැහැණියකට ආදරය කරපු කරුණාවන්ත ඇහිපිය ඇති පිරිමියෙක්. කැබලි වුණු පිරිමියෙකුට ප්‍රේම කළ විශාල හදවතක් ඇති ගහැණියක්.",
+                image: "https://katha.lk/wp-content/uploads/2024/05/s0185-forget-me-not-charitha-prawardhi-bandara-chathuri-damayanthi.webp",
+                available: true
+            },
+
+            {
+                id: 13,
+                title: "ඇහැළ මලට දම් පාටක් | Ehela Malata Dam Patak",
+                author: "Chathuri Damayanthi",
+                genre: "Novel",
+                year: "Unknown",
+                rating: 7.5,
+                category: "YA",
+                pages: 290,
+                location: "MLC/N/00013/YA",
+                description: "Working on it.",
+                image: "https://katha.lk/wp-content/uploads/2024/05/s0186-ehala-malata-dam-patak-chathuri-damayanthi.webp",
+                available: false
+            },
+
+            {
+                id: 14,
+                title: "දවසක් දා හැන්දෑවක | Dawasak Da Handawaka",
+                author: "Rasika Jayakody",
+                genre: "Miscellaneous",
+                year: "Unknown",
+                rating: 6.0,
+                category: "YA",
+                pages: 120,
+                location: "MLC/M/00014/YA",
+                description: "ජීවිතයේ කෙළවරක් නැති මිනිස් සබඳතාවලටත් මේ ‘න්‍යාය’ ම ගළපන්නට පුළුවන්. කතාබහ කිරීම සහ කතා නොකර සිටීම, හමුවීම සහ හමු නොවී සිටීම, ළං වීම සහ දුරස්ව සිටීම, පැමිණීම සහ නොපැමිණීම…මේ සියල්ලක් ම ජීවත් වීම සඳහා අවශ්‍යයි. මේ සියලුම සංසිද්ධීන් එකකට එකක් වෙන් කළ නොහැකි සේ සහ සම්බන්ධයි. සංගීත සංධ්වනියක ස්වර සහ නිහැඬියාව වගේ… කවියක කියැවෙන දේ සහ නො කියැවෙන දේ වගේ. මා ජීවිතය කියවන විදියට ‘උපේක්ෂාව’ යනු මේ සහ සම්බන්ධය තේරුම් ගැනීමයි. උපේක්ෂාව එක්තරා විදියක සුවබර නිද්‍රාවක්.",
+                image: "https://katha.lk/wp-content/uploads/2024/07/s0449-dawasak-da-handawaka-rasika-jayakody.webp",
+                available: false
+            },
+
+            {
+                id: 15,
+                title: "If It's Not Forever",
+                author: "	Durjoy Datta | Nikita Singh",
+                genre: "Romance",
+                year: "2012",
+                rating: 6.0,
+                category: "Adult",
+                pages: 239,
+                location: "MLC/M/00015/A",
+                description: "If It's Not Forever is a novel by Durjoy Datta and Nikita Singh.[1] It was published in the year 2012 by Grapevine India Publishers. It is set on the story of the 2011 Delhi High Court blasts.[2][3] Though mentioned as a love story, it is more of a suspense thriller. There are seven characters mentioned in this book, with the main protagonist being Debashish (Deb), who hails from Bengal and is deeply scarred with haunting memories of the blast. The book has received average reviews from critics all over India.",
+                image: "https://upload.wikimedia.org/wikipedia/en/2/2a/If_Its_Not_Forever.jpg",
+                available: false
+            }
+        ];
+
+        // --- State ---
+        let currentFilter = 'All';
+        let currentSort = 'newest';
+        let searchQuery = '';
+
+        // --- DOM Elements ---
+        const bookGrid = document.getElementById('bookGrid');
+        const searchInput = document.getElementById('searchInput');
+        const mobileSearchInput = document.getElementById('mobileSearchInput');
+        const sortSelect = document.getElementById('sortSelect');
+        const genreFilters = document.getElementById('genreFilters');
+        const bookCount = document.getElementById('bookCount');
+        const noResults = document.getElementById('noResults');
+        const modal = document.getElementById('bookModal');
+
+        // --- Initialization ---
+        function init() {
+            renderBooks();
+
+            // Search Listeners
+            searchInput.addEventListener('input', (e) => handleSearch(e.target.value));
+            mobileSearchInput.addEventListener('input', (e) => handleSearch(e.target.value));
+            
+            // Sort Listener
+            sortSelect.addEventListener('change', (e) => {
+                currentSort = e.target.value;
+                renderBooks();
+            });
+
+            // Mobile Menu Toggle
+            document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+                const panel = document.getElementById('mobileSearchPanel');
+                panel.classList.toggle('hidden');
+            });
+        }
+
+        // --- Core Logics ---
+        function handleSearch(query) {
+            searchQuery = query.toLowerCase();
+            renderBooks();
+        }
+
+        function filterByGenre(genre) {
+            currentFilter = genre;
+            
+            // Update visual button state
+            const buttons = genreFilters.querySelectorAll('button');
+            buttons.forEach(btn => {
+                if(btn.innerText === genre) {
+                    btn.classList.remove('bg-slate-800', 'text-slate-300');
+                    btn.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-500/30');
+                } else {
+                    btn.classList.add('bg-slate-800', 'text-slate-300');
+                    btn.classList.remove('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-500/30');
+                }
+            });
+
+            renderBooks();
+        }
+
+        function resetApp() {
+            searchInput.value = '';
+            mobileSearchInput.value = '';
+            searchQuery = '';
+            filterByGenre('All');
+        }
+
+        function getFilteredAndSortedBooks() {
+            let filtered = books.filter(book => {
+                const matchesGenre = currentFilter === 'All' || book.genre === currentFilter;
+                const matchesSearch = book.title.toLowerCase().includes(searchQuery) || 
+                                      book.author.toLowerCase().includes(searchQuery);
+                return matchesGenre && matchesSearch;
+            });
+
+            return filtered.sort((a, b) => {
+                if (currentSort === 'newest') {
+                    // Handling "Unknown" years by placing them last or treating as 0
+                    let yearA = parseInt(a.year) || 0;
+                    let yearB = parseInt(b.year) || 0;
+                    return yearB - yearA;
+                }
+                if (currentSort === 'oldest') {
+                    let yearA = parseInt(a.year) || 9999;
+                    let yearB = parseInt(b.year) || 9999;
+                    return yearA - yearB;
+                }
+                if (currentSort === 'rating') return b.rating - a.rating;
+                if (currentSort === 'available') return (a.available === b.available) ? 0 : a.available ? -1 : 1;
+                return 0;
+            });
+        }
+
+        function renderBooks() {
+            const displayBooks = getFilteredAndSortedBooks();
+            
+            bookCount.innerText = `Showing ${displayBooks.length} book${displayBooks.length !== 1 ? 's' : ''}`;
+            bookGrid.innerHTML = '';
+
+            if (displayBooks.length === 0) {
+                bookGrid.classList.add('hidden');
+                noResults.classList.remove('hidden');
+            } else {
+                bookGrid.classList.remove('hidden');
+                noResults.classList.add('hidden');
+                
+                displayBooks.forEach(book => {
+                    const card = document.createElement('div');
+                    // Add visual cue for unavailable books in grid
+                    const availabilityClass = book.available ? '' : 'card-unavailable';
+                    card.className = `bg-slate-800 rounded-xl overflow-hidden shadow-lg border border-slate-700/50 card-hover transition-all duration-300 cursor-pointer fade-in ${availabilityClass}`;
+                    card.onclick = () => openModal(book);
+
+                    const categoryClass = `cat-${book.category}`;
+                    
+                    // Badge logic
+                    let badgeHTML = '';
+                    if(!book.available) {
+                         badgeHTML = `<div class="absolute top-3 right-3 px-2 py-1 text-xs font-bold rounded shadow-md bg-red-500/90 text-white z-10 backdrop-blur-sm">Checked Out</div>`;
+                    }
+
+                    // Handle missing images visually
+                    const imageSrc = book.image;
+
+                    card.innerHTML = `
+                        <div class="relative h-64 overflow-hidden group">
+                            ${badgeHTML}
+                            <div class="absolute top-3 left-3 px-2 py-1 text-xs font-bold rounded shadow-md ${categoryClass} z-10 shadow-lg">${book.category}</div>
+                            <img src="${imageSrc}" alt="${book.title}" 
+                                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450/1e293b/475569?text=No+Cover';">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-80"></div>
+                        </div>
+                        <div class="p-4 relative">
+                            <div class="absolute -top-6 right-4 bg-slate-700 text-yellow-400 px-2 py-1 rounded-lg shadow-lg flex items-center gap-1 text-sm font-bold border border-slate-600">
+                                <i class="fa-solid fa-star text-xs"></i> ${book.rating}
+                            </div>
+                            <div class="text-xs text-emerald-400 font-bold tracking-wider uppercase mb-1">${book.genre}</div>
+                            <h3 class="text-lg font-bold text-white mb-1 line-clamp-2 leading-tight h-12">${book.title}</h3>
+                            <p class="text-sm text-slate-400 mb-3 line-clamp-1">by ${book.author}</p>
+                            
+                            <div class="flex items-center justify-between text-xs text-slate-500 border-t border-slate-700 pt-3">
+                                <span>${book.year}</span>
+                                <span class="${book.available ? 'text-emerald-400' : 'text-red-400'} flex items-center gap-1">
+                                    <i class="fa-solid fa-circle text-[8px]"></i>
+                                    ${book.available ? 'Available' : 'Unavailable'}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                    bookGrid.appendChild(card);
+                });
+            }
+        }
+
+        function openModal(book) {
+            // Populate Modal Data
+            document.getElementById('modalTitle').innerText = book.title;
+            document.getElementById('modalAuthor').innerText = `by ${book.author}`;
+            document.getElementById('modalGenre').innerText = book.genre;
+            document.getElementById('modalRating').innerText = book.rating;
+            document.getElementById('modalYear').innerText = book.year;
+            document.getElementById('modalPages').innerText = `${book.pages} pages`;
+            document.getElementById('modalDescription').innerText = book.description;
+            document.getElementById('modalLocation').innerText = book.location;
+            
+            // Image handling
+            const modalImg = document.getElementById('modalImage');
+            const modalPlaceholder = document.getElementById('modalImagePlaceholder');
+            modalImg.src = book.image;
+            modalImg.style.display = 'block';
+            modalPlaceholder.style.display = 'none'; // Hide placeholder initially
+
+            // Category Styling
+            const catEl = document.getElementById('modalCategory');
+            catEl.innerText = book.category;
+            // Remove old classes
+            catEl.className = 'px-2 py-0.5 rounded text-xs font-bold shadow-sm'; 
+            // Add specific color class defined in CSS
+            catEl.classList.add(`cat-${book.category}`);
+
+            // Status Logic
+            const statusEl = document.getElementById('modalStatus');
+            const actionBtn = document.getElementById('actionButton');
+
+            if (book.available) {
+                statusEl.innerHTML = `<span class="status-available flex items-center gap-2"><i class="fa-solid fa-check-circle"></i> Available on Shelf</span>`;
+                actionBtn.className = "w-full text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 uppercase tracking-wide text-sm shadow-lg bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20";
+                actionBtn.innerHTML = `<i class="fa-solid fa-cart-plus"></i> Reserve Book`;
+                actionBtn.onclick = () => {
+                    alert(`You have reserved: ${book.title}\nPlease pick it up from location: ${book.location}`);
+                };
+            } else {
+                statusEl.innerHTML = `<span class="status-checked-out flex items-center gap-2"><i class="fa-solid fa-clock"></i> Currently Checked Out</span>`;
+                actionBtn.className = "w-full text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 uppercase tracking-wide text-sm shadow-lg bg-slate-700 cursor-not-allowed opacity-75";
+                actionBtn.innerHTML = `<i class="fa-solid fa-bell"></i> Notify When Available`;
+                actionBtn.onclick = () => {
+                    alert(`We will notify you when "${book.title}" is returned.`);
+                };
+            }
+
+            // Show Modal
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto'; // Restore scrolling
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+
+        // Initialize App
+        init();
+
+    </script>
+</body>
+</html>
