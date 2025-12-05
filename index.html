@@ -56,6 +56,7 @@
         .cat-YA { background-color: #f97316; color: white; }            /* Orange */
         .cat-Adult { background-color: #ef4444; color: white; }         /* Red */
         .cat-Academic { background-color: #3b82f6; color: white; }      /* Blue */
+        .cat-Unspecified { background-color: #ffffff; color: black; }   /* White */
 
         /* Availability Status Styles */
         .status-available { color: #34d399; } /* Emerald 400 */
@@ -113,7 +114,7 @@
         
         <!-- Mobile Search (Expandable) -->
         <div id="mobileSearchPanel" class="hidden md:hidden border-t border-slate-800 bg-slate-900 p-4">
-             <input type="text" id="mobileSearchInput" placeholder="Search..." class="w-full bg-slate-800 text-white border border-slate-700 rounded-lg py-2 px-4 focus:ring-2 focus:ring-emerald-500">
+             <input type="text" id="mobileSearchInput" placeholder="Search here..." class="w-full bg-slate-800 text-white border border-slate-700 rounded-lg py-2 px-4 focus:ring-2 focus:ring-emerald-500">
         </div>
     </nav>
 
@@ -137,13 +138,14 @@
                 <button onclick="filterByGenre('Novel')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Novels</button>
                 <button onclick="filterByGenre('Romance')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Romance</button>
                 <button onclick="filterByGenre('Miscellaneous')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Miscellaneous</button>
+                <button onclick="filterByGenre('Religion')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Religion</button>
             </div>
 
             <!-- Sort/Count -->
             <div class="flex items-center justify-between md:justify-end w-full md:w-auto text-slate-400 text-sm">
                 <span id="bookCount">Showing 0 books</span>
                 <div class="ml-4 flex items-center gap-2">
-                    <label for="sortSelect">Sort:</label>
+                    <label for="sortSelect">Sort Options:</label>
                     <select id="sortSelect" class="bg-slate-800 border-none rounded text-slate-200 text-sm focus:ring-1 focus:ring-emerald-500 py-1 px-2 cursor-pointer">
                         <option value="newest">Newest</option>
                         <option value="oldest">Oldest</option>
@@ -184,7 +186,7 @@
                     </p>
                     <div class="text-sm text-slate-500 border-l-2 border-emerald-500 pl-3">
                         <p class="font-medium text-slate-300">Credits</p>
-                        <p>Designed & Developed by <span class="text-emerald-400">Mylib Team</span></p>
+                        <p>Designed & Developed by <span class="text-emerald-400">Ashen Atthanayaka</span></p>
                         <p class="text-xs mt-1">Icons by FontAwesome & Images by Katha.lk</p>
                     </div>
                 </div>
@@ -234,7 +236,7 @@
                             <i class="fa-brands fa-instagram"></i>
                         </a>
                         <a href="#" class="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-blue-700 hover:text-white transition-all transform hover:-translate-y-1">
-                            <i class="fa-brands fa-linkedin-in"></i>
+                            <i class="fa-brands fa-youtube"></i>
                         </a>
                     </div>
                 </div>
@@ -242,7 +244,7 @@
 
             <!-- Bottom Bar -->
             <div class="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-                <p>&copy; 2025 Mylibcom. All rights reserved.</p>
+                <p>&copy; 2024 Mylibcom. All rights reserved.</p>
                 <div class="flex flex-wrap justify-center gap-6">
                     <span>Ratings for your favourite books</span>
                     <span class="hidden md:inline text-slate-700">|</span>
