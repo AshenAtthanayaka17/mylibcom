@@ -352,11 +352,13 @@
                     </div>
                 </div>
 
-                <div class="flex items-center" id="authSection">
-                    <button onclick="showLoginModal()" class="text-emerald-400 hover:text-emerald-300 font-bold">
-                        Login /Register
-                    </button>
+                <!-- User Auth Menue -->
+                <div class="flex items-center gap-6" id="authSection">
+                    <!-- Firebase will replace this -->
                 </div>
+                <button onclick="showAccount()" class="text-emerald-400 hover:text-emerald-300 hidden" id="accountBtn">
+                    <i class="fa-solid fa-user-circle text-2xl"></i>
+                </button>
 
                 <!-- Mobile Filter Button -->
                 <div class="md:hidden">
@@ -429,6 +431,38 @@
         <!-- Book Grid -->
         <div id="bookGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             <!-- Book Cards will be injected here -->
+        </div>
+
+        <!-- My Account Page -->
+        <div id="accountPage" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="flex items-center justify-between mb-8">
+                <h1 class="text-3xl font-bold text-white">My Account</h1>
+                <button onclick="showHome()" class="text-emerald-400 hover:text-emerald-300">
+                    <i class="fa-solid fa-arrow-left mr-2"></i>Back to Library
+                </button>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Wishlist -->
+                <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700">
+                    <h2 class="text-xl font-bold text-emerald-400 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-heart"></i> My Wishlist
+                    </h2>
+                    <div id="wishlistContainer" class="space-y-3">
+                        <p class="text-slate-500">Loading your wishlist...</p>
+                    </div>
+                </div>
+
+                <!-- Borrowed Books -->
+                <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700">
+                    <h2 class="text-xl font-bold text-yellow-400 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-book-bookmark"></i> Borrowed Books
+                    </h2>
+                    <div id="borrowedContainer" class="space-y-3">
+                        <p class="text-slate-500">No books borrowed yet.</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- No Results State -->
@@ -651,6 +685,30 @@
                             class="w-full bg-slate-700 text-white rounded-lg px-4 py-3 mb-4 focus:ring-2 focus:ring-emerald-500 outline-none">
                         <input type="password" id="authPassword" placeholder="Password"
                             class="w-full bg-slate-700 text-white rounded-lg px-4 py-3 mb-6 focus:ring-2 focus:ring-emerald-500 outline-none">
+
+                        <div class="text-center mt-3">
+                            <button onclick="forgotPassword()" class="text-sm text-emerald-400 hover:underline">
+                                Forgot password?
+                            </button>
+                        </div>
+
+                        <div class="my-4">
+                            <div class="relative">
+                                <div class="absolute inset-0 flex items-center">
+                                    <div class="w-full border-t border-slate-600"></div>
+                                </div>
+                                <div class="relative flex justify-center text-sm">
+                                    <span class="px-2 bg-slate-800 text-slate-400">or</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="googleSignIn()"
+                            class="w-full bg-white text-black font-medium py-3 rounded-lg flex items-center justify-center gap-3 hover:bg-gray-100 transition">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"
+                                class="w-5 h-5">
+                            Continue with Google
+                        </button>
 
                         <button id="authMainBtn" onclick="login()"
                             class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg mb-3">
@@ -1178,24 +1236,30 @@
 
         // === GLOBAL USER STATE ===
         let currentUser = null;
+        let userData = { wishlist: [], borrowed: [] };
 
         // Listen for auth changes
         auth.onAuthStateChanged((user) => {
             currentUser = user;
             if (user) {
                 document.getElementById('authSection').innerHTML = `
-      <div class="flex items-center gap-3">
-        <span class="text-sm text-slate-300">Hi, ${user.displayName || user.email}</span>
-        <button onclick="logout()" class="text-xs bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded">Logout</button>
-      </div>
-    `;
-                loadUserData(); // Load wishlist & borrowed
-            } else {
-                document.getElementById('authSection').innerHTML = `
-      <button onclick="showLoginModal()" class="text-emerald-400 hover:text-emerald-300 font-bold">Login / Register</button>
-    `;
+                <div class="flex items-center gap-3">
+                    <span class="text-sm text-slate-300 hidden md:block">Hi, ${user.displayName || user.email.split('@')[0]}</span>
+                    <button onclick="logout()" class="text-xs bg-red-600 hover:bg-red-500 px-4 py-2 rounded">Logout</button>
+                </div>
+            `;
+                document.getElementById('accountBtn').classList.remove('hidden');
+                loadUserData();
             }
-            renderBooks(); // Re-render to show wishlist hearts
+
+            else {
+                document.getElementById('authSection').innerHTML = `
+                <button onclick="showLoginModal()" class="text-emerald-400 hover:text-emerald-300 font-bold">Login / Register</button>
+            `;
+                document.getElementById('accountBtn').classList.add('hidden');
+                userData = { wishlist: [], borrowed: [] };
+            }
+            renderBooks();
         });
 
         // --- State ---
@@ -1391,14 +1455,17 @@
             const statusEl = document.getElementById('modalStatus');
             const actionBtn = document.getElementById('actionButton');
 
+            actionBtn.innerHTML = `<i class="fa-solid fa-book-bookmark"></i> Borrow Book`;
+            actionBtn.onclick = () => borrowBook(book);
+
             if (book.available) {
                 statusEl.innerHTML = `<span class="status-available flex items-center gap-2"><i class="fa-solid fa-check-circle"></i> Available</span>`;
                 actionBtn.className = "w-full text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 uppercase tracking-wide text-sm shadow-lg bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20";
-                actionBtn.innerHTML = `<i class="fa-solid fa-cart-plus"></i> Reserve Book`;
-                actionBtn.onclick = () => {
-                    alert(`You have reserved: ${book.title}\nPlease pick it up from location: ${book.location}`);
-                };
-            } else {
+                actionBtn.innerHTML = `<i class="fa-solid fa-book-bookmark"></i> Borrow Book`;
+                actionBtn.onclick = () => borrowBook(book);
+            }
+
+            else {
                 statusEl.innerHTML = `<span class="status-checked-out flex items-center gap-2"><i class="fa-solid fa-clock"></i>Not Available</span>`;
                 actionBtn.className = "w-full text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 uppercase tracking-wide text-sm shadow-lg bg-slate-700 cursor-not-allowed opacity-75";
                 actionBtn.innerHTML = `<i class="fa-solid fa-bell"></i> Notify When Available`;
@@ -1497,6 +1564,143 @@
         // Initialize App
         init();
 
+        //load userdata + lists + borrows
+        async function loadUserData() {
+            if (!currentUser) return;
+            const doc = await db.collection('users').doc(currentUser.uid).get();
+            userData = doc.exists ? doc.data() : { wishlist: [], borrowed: [] };
+            renderAccountPage();
+        }
+
+        function isInWishlist(bookId) {
+            return userData.wishlist.includes(bookId);
+        }
+
+        async function toggleWishlist(bookId, e) {
+            e.stopPropagation();
+            if (!currentUser) {
+                alert("Please login to add to wishlist");
+                showLoginModal();
+                return;
+            }
+
+            const index = userData.wishlist.indexOf(bookId);
+            if (index > -1) {
+                userData.wishlist.splice(index, 1);
+            } else {
+                userData.wishlist.push(bookId);
+            }
+
+            await db.collection('users').doc(currentUser.uid).update({
+                wishlist: userData.wishlist
+            });
+
+            renderBooks();
+            if (document.getElementById('accountPage') && !document.getElementById('accountPage').classList.contains('hidden')) {
+                renderAccountPage();
+            }
+        }
+
+        // borrow machenism
+        async function borrowBook(book) {
+            if (!currentUser) {
+                alert("Please login to borrow books");
+                showLoginModal();
+                return;
+            }
+
+            const entry = {
+                id: book.id,
+                title: book.title,
+                author: book.author,
+                borrowedAt: new Date().toISOString().split('T')[0]
+            };
+
+            // Remove if already borrowed
+            userData.borrowed = userData.borrowed.filter(b => b.id !== book.id);
+            userData.borrowed.push(entry);
+
+            await db.collection('users').doc(currentUser.uid).update({
+                borrowed: userData.borrowed
+            });
+
+            alert(`You have borrowed "${book.title}"!`);
+            closeModal();
+            renderAccountPage();
+        }
+
+        // Account pg rendering
+        function showHome() {
+            document.getElementById('accountPage').classList.add('hidden');
+            document.querySelector('.max-w-7xl.mx-auto.px-4').classList.remove('hidden'); // main page
+        }
+
+        function showAccount() {
+            if (!currentUser) {
+                showLoginModal();
+                return;
+            }
+            document.querySelector('.max-w-7xl.mx-auto.px-4').classList.add('hidden');
+            document.getElementById('accountPage').classList.remove('hidden');
+            renderAccountPage();
+        }
+
+        function renderAccountPage() {
+            const wishlistDiv = document.getElementById('wishlistContainer');
+            const borrowedDiv = document.getElementById('borrowedContainer');
+
+            wishlistDiv.innerHTML = userData.wishlist.length === 0
+                ? '<p class="text-slate-500">Your wishlist is empty</p>'
+                : userData.wishlist.map(id => {
+                    const b = books.find(x => x.id === id);
+                    return `<div class="bg-slate-700 p-4 rounded-lg flex justify-between items-center">
+                    <div>
+                    <strong>${b.title}</strong><br>
+                    <small class="text-slate-400">by ${b.author}</small>
+                    </div>
+                    
+                    <button onclick="toggleWishlist(${id}, event)" class="text-red-500 text-xl">
+                    <i class="fa-solid fa-heart"></i>
+                    </button>
+                    </div>`;
+                }).join('');
+
+            borrowedDiv.innerHTML = userData.borrowed.length === 0
+                ? '<p class="text-slate-500">No books borrowed yet</p>'
+                : userData.borrowed.map(b => {
+                    const book = books.find(x => x.id === b.id);
+                    return `<div class="bg-slate-700 p-4 rounded-lg">
+                    <strong>${b.title}</strong><br>
+                    <small class="text-slate-400">by ${b.author} • Borrowed on ${b.borrowedAt}</small>
+                    </div>`;
+                }).join('');
+        }
+
+        //G-Login Mechanism
+        function googleSignIn() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then(() => {
+                    // Auto creates user doc if not exists
+                    const user = auth.currentUser;
+                    db.collection('users').doc(user.uid).set({
+                        email: user.email,
+                        wishlist: [],
+                        borrowed: [],
+                        joined: new Date()
+                    }, { merge: true });
+                });
+        }
+
+        //Password reset mechanism
+        function forgotPassword() {
+            const email = prompt("Enter your email:");
+            if (email) {
+                auth.sendPasswordResetEmail(email)
+                    .then(() => alert("Password reset email sent! Check your inbox."))
+                    .catch(err => alert("Error: " + err.message));
+            }
+        }
     </script>
 </body>
 </html>
