@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mylibcom - Digital Library</title>
+    <title>Mylibcom - Digital Library (Merged)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -12,9 +12,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/png" href="https://img.icons8.com/?size=100&id=PaMqeFJp6WDW&format=png&color=000000">
-    <!--Update me iywn Logo -->
 
-    <!--Seasonal effects-->
+    <!--Seasonal effects--> 
     <div id="snowflakeContainer">
         <div class="snowflake">❅</div>
         <div class="snowflake">❆</div>
@@ -157,13 +156,7 @@
             animation-delay: 5s;
             font-size: 1.2em;
         }
-    </style>
-    <!-- End of Seasonal effects-->
-    <!--to activate remove extra functions before "div Id " & after "Style"-->
-    <!--to reactivate follow visvrsa-->
 
-
-    <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;700&display=swap');
 
@@ -397,7 +390,7 @@
                 <button onclick="filterByGenre('Mystery')"
                     class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Mystery</button>
                 <button onclick="filterByGenre('Classic')"
-                    class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Classic</button>
+                    class="px-4 py-1.5 rounded-full text-sm font medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Classic</button>
                 <button onclick="filterByGenre('Non-Fiction')"
                     class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all">Non-Fiction</button>
                 <button onclick="filterByGenre('Horror')"
@@ -732,9 +725,6 @@
 
     <script>
         // --- BOOK DATABASE ---
-        // TO UPDATE AVAILABILITY: 
-        // Find the book in this list and change 'available: true' to 'available: false' (or vice versa).
-
         const books = [
             {
                 id: 1,
@@ -781,7 +771,7 @@
                 description: "ඉස්සෙල්ලා ම ඔහුට ඇයගෙ හීනි ඇඟිලි තුඩුවල ස්පර්ශය දැනෙන්න ගත්තා. ඒත් එක්ක ම ඇඟිලිවලින් පටං ගත්ත උණුසුමක් මුලු ඇඟ පුරා ම පැතිරෙන විදිහ ඔහුට දැණුනා. ඇගේ අත සිනිඳු වුණා වගේ ම උණුසුම් වුණා. ඒක ඔහුට ඇති කරේ ගුලිවෙලා නිදාගැනීමේ වුවමනාවක්. මූට මේ මොකක් ද වුණේ වගේ ලුක් එකක් එක්ක ඇය ඔහු දිහාවට හැරුණා. මුකුත් නොකිය ම ඔහුත් ඇය දිහා බලාගෙන ඉඳලා තිබුණා. තත්පර දහයක් විතර ඔවුන් එකිනෙකා දිහා බලාගෙන ඉද්දි, ඔහුට ඇත්තට ම හැමදේම හොඳින් සිද්ධවෙයි කියලා දැනෙන්න පටං ගත්තා. ඒ වගේ ම හැමදේම හොඳින් සිද්ධ වේවි කියලා ඔහු විශ්වාස කරන්න පටං අරගෙන තිබුණා. ඒත් එක්ක ම කඳවුරේ කෙළවරකින් කවුදෝ කෑගහනවා ඇහුණා. “සිරිමල් අයියා වැටිලා…”",
                 image: "https://katha.lk/wp-content/uploads/2025/06/S0526-E-Dawas-Hari-Wenas-Abdul-Umar-Sahan-Nethmina.webp",
                 available: true,
-                status: "" // new arrival: new, Leaving soon: leaving, or null
+                status: "leaving" // new arrival: new, Leaving soon: leaving, or null
             },
 
             {
@@ -1117,7 +1107,7 @@
                 description: "Sadie Shaw and Jonah Fisher have been academic rivals since they first crossed paths as undergraduates in the literature department thirteen years ago. Now that a highly coveted teaching opportunity has come up, their rivalry hits epic proportions. Jonah needs the job to move closer to his recently divorced sister and her children, while Sadie needs the financial security and freedom of a full-time teaching position.",
                 image: "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1743882229i/224003821.jpg",
                 available: true,
-                status: "" // new arrival: new, Leaving soon: leaving, or null
+                status: "new" // new arrival: new, Leaving soon: leaving, or null
             },
 
             {
@@ -1216,7 +1206,6 @@
                 status: "" // new arrival: new, Leaving soon: leaving, or null
             },
         ];
-
 
         // === uses firebase config creds to this ===
         const firebaseConfig = {
@@ -1384,11 +1373,11 @@
                     }
 
                     else if (book.status === 'leaving') {
-                        badgeHTML = `<div class="absolute top-3 right-3 px-3 py-1.5 text-xs font-bold rounded-lg shadow-md bg-yellow-600 text-white z-10 backdrop-blur-sm border border-yellow-400">LEAVING SOON</div>`;
+                        badgeHTML = `<div class="absolute top-3 right-3 px-3 py-1.5 text-xs font-bold rounded-lg shadow-md bg-yellow-600 text-white z-10 backdrop-blur-sm border border-yellow-400">Leaving Soon</div>`;
                     }
 
                     else if (book.status === 'new') {
-                        badgeHTML = `<div class="absolute top-3 right-3 px-3 py-1.5 text-xs font-bold rounded-lg shadow-md bg-emerald-600 text-white z-10 backdrop-blur-sm border border-emerald-400">NEW ARRIVAL</div>`;
+                        badgeHTML = `<div class="absolute top-3 right-3 px-3 py-1.5 text-xs font-bold rounded-lg shadow-md bg-emerald-600 text-white z-10 backdrop-blur-sm border border-emerald-400">New Arrival</div>`;
                     }
 
                     // Handle missing images visually
@@ -1446,7 +1435,6 @@
             // Category Styling
             const catEl = document.getElementById('modalCategory');
             catEl.innerText = book.category;
-            // Remove old classes
             catEl.className = 'px-2 py-0.5 rounded text-xs font-bold shadow-sm';
             // Add specific color class defined in CSS
             catEl.classList.add(`cat-${book.category}`);
@@ -1585,23 +1573,17 @@
             }
 
             const index = userData.wishlist.indexOf(bookId);
-            if (index > -1) {
-                userData.wishlist.splice(index, 1);
-            } else {
+            if (index === -1) {
                 userData.wishlist.push(bookId);
+            } else {
+                userData.wishlist.splice(index, 1);
             }
 
-            await db.collection('users').doc(currentUser.uid).update({
-                wishlist: userData.wishlist
-            });
-
+            await db.collection('users').doc(currentUser.uid).set(userData);
+            renderAccountPage();
             renderBooks();
-            if (document.getElementById('accountPage') && !document.getElementById('accountPage').classList.contains('hidden')) {
-                renderAccountPage();
-            }
         }
 
-        // borrow machenism
         async function borrowBook(book) {
             if (!currentUser) {
                 alert("Please login to borrow books");
@@ -1609,40 +1591,20 @@
                 return;
             }
 
-            const entry = {
-                id: book.id,
-                title: book.title,
-                author: book.author,
-                borrowedAt: new Date().toISOString().split('T')[0]
-            };
-
-            // Remove if already borrowed
-            userData.borrowed = userData.borrowed.filter(b => b.id !== book.id);
-            userData.borrowed.push(entry);
-
-            await db.collection('users').doc(currentUser.uid).update({
-                borrowed: userData.borrowed
-            });
-
-            alert(`You have borrowed "${book.title}"!`);
-            closeModal();
-            renderAccountPage();
-        }
-
-        // Account pg rendering
-        function showHome() {
-            document.getElementById('accountPage').classList.add('hidden');
-            document.querySelector('.max-w-7xl.mx-auto.px-4').classList.remove('hidden'); // main page
-        }
-
-        function showAccount() {
-            if (!currentUser) {
-                showLoginModal();
+            if (!book.available) {
+                alert("This book is currently unavailable");
                 return;
             }
-            document.querySelector('.max-w-7xl.mx-auto.px-4').classList.add('hidden');
-            document.getElementById('accountPage').classList.remove('hidden');
+
+            // Mark as borrowed locally
+            userData.borrowed.push({ id: book.id, title: book.title, author: book.author, borrowedAt: new Date().toLocaleDateString() });
+            book.available = false;
+
+            await db.collection('users').doc(currentUser.uid).set(userData);
             renderAccountPage();
+            renderBooks();
+            closeModal();
+            alert(`You've borrowed "${book.title}". Happy reading!`);
         }
 
         function renderAccountPage() {
